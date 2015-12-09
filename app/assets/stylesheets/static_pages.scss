@@ -1,3 +1,8 @@
 // Place all the styles related to the StaticPages controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+.playing {
+  font-size: 30px;
+  text-shadow: 2px 3px gray;
+  transition: font-size 0.5s, text-shadow 0.5s;
+}

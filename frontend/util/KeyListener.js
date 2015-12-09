@@ -1,5 +1,5 @@
-var Dispatcher = require('../dispatcher/Dispatcher')
-var KeyActions = require('../actions/key_actions.js')
+var Dispatcher = require('../dispatcher/Dispatcher');
+var KeyActions = require('../actions/key_actions.js');
 
 var Mapping = {
   65: 'C',
@@ -13,7 +13,6 @@ var Mapping = {
 
 $(document).on('keydown', function(event){
   KeyActions.keyPressed(Mapping[event.keyCode]);
-
 });
 
 $(document).on('keyup', function(event){

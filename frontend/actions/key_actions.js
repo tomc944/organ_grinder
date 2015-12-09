@@ -8,11 +8,12 @@ var KeyActions = {
     });
   },
 
-  keyReleased: function(noteReleased)
+  keyReleased: function(noteReleased) {
     Dispatcher.dispatch({
       actionType: "NOTE_RELEASED",
-      noteName: noteReleased;
-  });
+      noteName: noteReleased
+    });
+  },
 }
 
 

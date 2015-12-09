@@ -5,7 +5,7 @@ var TONES = {
   "D": 293.66,
   "E": 329.63,
   "F": 349.23,
-  "G": 392;
+  "G": 392
 };
 
 module.exports = TONES;

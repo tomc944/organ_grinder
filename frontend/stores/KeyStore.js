@@ -5,6 +5,16 @@ var KeyStore = new Store(Dispatcher);
 
 var _keys = [];
 
+KeyStore.all = function() {
+  return _keys.slice();
+};
+
+KeyStore.isPlaying = function(noteName) {
+  var index = _keys.indexOf(noteName);
+  if (index !== -1) {return true;}
+  return false;
+};
+
 KeyStore.__onDispatch = function(payload) {
   switch (payload.actionType) {
     case "NOTE_PLAYED":
@@ -22,8 +32,8 @@ var playNote = function(noteName) {
 };
 
 var releaseNote = function(noteName) {
-  var index = _keys.indexOf(noteName)
-  if (index !== -1) { _keys.splice(index, 1)}
+  var index = _keys.indexOf(noteName);
+  if (index !== -1) { _keys.splice(index, 1); }
   KeyStore.__emitChange();
 };
 
