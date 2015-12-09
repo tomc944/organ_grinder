@@ -27,7 +27,8 @@ KeyStore.__onDispatch = function(payload) {
 };
 
 var playNote = function(noteName) {
-  _keys.push(noteName);
+  var index = _keys.indexOf(noteName);
+  if (index === -1) { _keys.push(noteName); }
   KeyStore.__emitChange();
 };
 

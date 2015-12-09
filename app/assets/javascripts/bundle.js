@@ -19657,16 +19657,19 @@
 	  getInitialState: function () {
 	    return { playing: false };
 	  },
-	  __startNote: function () {
+	  __playNote: function () {
 	    if (KeyStore.isPlaying(this.props.note)) {
 	      this.setState({ playing: true });
 	      this.note.start();
+	    } else {
+	      this.setState({ playing: false });
+	      this.note.stop();
 	    }
 	  },
 	  componentDidMount: function () {
 	    var noteName = this.props.note;
 	    this.note = new Note(TONES[noteName]);
-	    this.removeToken = KeyStore.addListener(this.__startNote);
+	    this.removeToken = KeyStore.addListener(this.__playNote);
 	  },
 	  componentWillUnmount: function () {
 	    this.removeToken.remove();
@@ -20100,7 +20103,10 @@
 	};
 	
 	var playNote = function (noteName) {
-	  _keys.push(noteName);
+	  var index = _keys.indexOf(noteName);
+	  if (index === -1) {
+	    _keys.push(noteName);
+	  }
 	  KeyStore.__emitChange();
 	};
 	
