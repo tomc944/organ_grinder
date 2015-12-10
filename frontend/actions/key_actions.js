@@ -14,6 +14,15 @@ var KeyActions = {
       noteName: noteReleased
     });
   },
+
+  playRecorded: function(notesPlayed) {
+    Dispatcher.dispatch({
+      actionType: "RECORDED_NOTE_PLAYED",
+      noteName: notesPlayed
+    });
+  }
+
+
 }
 
 

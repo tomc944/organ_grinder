@@ -47,12 +47,11 @@
 	var ReactDOM = __webpack_require__(1),
 	    React = __webpack_require__(147),
 	    KeyListener = __webpack_require__(160),
-	    Organ = __webpack_require__(185),
-	    noteList = ["A", "B", "C", "D", "E", "F", "G"];
+	    Organ = __webpack_require__(185);
 	
 	document.addEventListener("DOMContentLoaded", function () {
 	    var content = document.querySelector('#content');
-	    ReactDOM.render(React.createElement(Organ, { notes: noteList }), content);
+	    ReactDOM.render(React.createElement(Organ, null), content);
 	});
 
 /***/ },
@@ -20047,7 +20046,15 @@
 	      actionType: "NOTE_RELEASED",
 	      noteName: noteReleased
 	    });
+	  },
+	
+	  playRecorded: function (notesPlayed) {
+	    Dispatcher.dispatch({
+	      actionType: "RECORDED_NOTE_PLAYED",
+	      noteName: notesPlayed
+	    });
 	  }
+	
 	};
 	
 	module.exports = KeyActions;
@@ -20085,9 +20092,11 @@
 	
 	KeyStore.isPlaying = function (noteName) {
 	  var index = _keys.indexOf(noteName);
+	
 	  if (index !== -1) {
 	    return true;
 	  }
+	
 	  return false;
 	};
 	
@@ -20099,22 +20108,35 @@
 	    case "NOTE_RELEASED":
 	      releaseNote(payload.noteName);
 	      break;
+	    case "RECORDED_NOTE_PLAYED":
+	      playRecord(payload.notesNames);
+	      break;
 	  }
 	};
 	
 	var playNote = function (noteName) {
 	  var index = _keys.indexOf(noteName);
+	
 	  if (index === -1) {
 	    _keys.push(noteName);
 	  }
+	
 	  KeyStore.__emitChange();
 	};
 	
 	var releaseNote = function (noteName) {
 	  var index = _keys.indexOf(noteName);
+	
 	  if (index !== -1) {
 	    _keys.splice(index, 1);
 	  }
+	
+	  KeyStore.__emitChange();
+	};
+	
+	var playRecord = function (notesNames) {
+	  _keys = notesNames;
+	
 	  KeyStore.__emitChange();
 	};
 	
@@ -26535,23 +26557,149 @@
 
 	var React = __webpack_require__(147),
 	    Key = __webpack_require__(159),
+	    Recorder = __webpack_require__(186),
 	    TONES = __webpack_require__(166);
 	
 	var Organ = React.createClass({
 	  displayName: 'Organ',
 	
 	  render: function () {
+	    var keyList = Object.keys(TONES).map(function (noteName, index) {
+	      return React.createElement(Key, { key: index, note: noteName });
+	    });
+	
 	    return React.createElement(
 	      'div',
 	      null,
-	      this.props.notes.map(function (noteName, index) {
-	        return React.createElement(Key, { key: index, note: noteName });
-	      })
+	      keyList,
+	      React.createElement(Recorder, null)
 	    );
 	  }
 	});
 	
 	module.exports = Organ;
+
+/***/ },
+/* 186 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var React = __webpack_require__(147),
+	    Track = __webpack_require__(187),
+	    KeyStore = __webpack_require__(167);
+	
+	var Recorder = React.createClass({
+	  displayName: 'Recorder',
+	
+	  getInitialState: function () {
+	    return {
+	      isRecording: false,
+	      track: new Track("untitled")
+	    };
+	  },
+	  startRecording: function () {
+	    var currentTrack = this.state.track;
+	    // var addNotesToTrack = currentTrack.addNotes.bind(currentTrack, KeyStore.all);
+	    var addNotesToTrack = function () {
+	      return KeyStore.all();
+	    };
+	    // console.log(addNotesToTrack);
+	    KeyStore.addListener(currentTrack.addNotes.bind(currentTrack, addNotesToTrack()));
+	  },
+	
+	  render: function () {
+	    return React.createElement(
+	      'div',
+	      null,
+	      React.createElement(
+	        'button',
+	        { onClick: this.startRecording },
+	        'Record'
+	      ),
+	      React.createElement(
+	        'button',
+	        { onClick: this.state.track.stopRecording.bind(this.state.track) },
+	        'Stop'
+	      ),
+	      React.createElement(
+	        'button',
+	        { onClick: this.state.track.play.bind(this.state.track) },
+	        'Play'
+	      )
+	    );
+	  }
+	});
+	
+	module.exports = Recorder;
+
+/***/ },
+/* 187 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var KeyActions = __webpack_require__(165);
+	
+	function Track(name, roll) {
+	  this.name = name;
+	  if (typeof roll !== 'undefined') {
+	    this.roll = roll;
+	  } else {
+	    this.roll = [];
+	  }
+	};
+	
+	Track.prototype.startRecording = function () {
+	  this.roll = [];
+	  this.time = new Date();
+	};
+	
+	Track.prototype.addNotes = function (playedNotes) {
+	  var elapsedTime = new Date() - this.time;
+	  this.roll.push({ timeSlice: elapsedTime, notes: playedNotes });
+	  console.log(this.roll);
+	};
+	
+	Track.prototype.stopRecording = function () {
+	  console.log(this);
+	  this.addNotes([]);
+	};
+	
+	Track.prototype.play = function () {
+	  if (typeof this.interval !== 'undefined') {
+	    return;
+	  }
+	
+	  var playBackStartTime = Date.now();
+	  var currentNote = 0;
+	
+	  var that = this;
+	
+	  var intervalId = setInterval(function () {
+	    if (currentNote <= that.roll.length) {
+	      var currentTime = Date.now() - playBackStartTime;
+	
+	      if (currentTime > that.roll[currentNote].timeSlice) {
+	        // debugger
+	        KeyAction.playRecorded(that.roll[currentNote].notes);
+	        currentNote++;
+	      }
+	    }
+	  }, 10);
+	
+	  // function playMusic(currentTime) {
+	  //   this.roll.forEach(function(note){
+	  //     if (note.timeSlice >= currentTime) {
+	  //
+	  //     }
+	  //   });
+	  // }
+	  //
+	  // var intervalId = setInterval(playMusic.bind(null, (Date.now - playBackStartTime), 10);
+	};
+	
+	//
+	//
+	// clearInterval(intervalId);
+	
+	module.exports = Track;
 
 /***/ }
 /******/ ]);
